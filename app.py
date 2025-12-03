@@ -4,17 +4,17 @@ import numpy as np
 from PIL import Image
 import os
 
-# ===================== KONFIGURASI HALAMAN =====================
+# ===================== KONFIGURASI HALAMAN (WAJIB PALING ATAS) =====================
 st.set_page_config(
     page_title="Roasting Level Coffee AI",
     page_icon="☕",
     layout="wide"
 )
 
-# ===================== LOAD MODEL =====================
+# ===================== LOAD MODEL (AMAN STREAMLIT CLOUD) =====================
 @st.cache_resource
 def load_model():
-    model_path = os.path.join(os.getcwd(), "roasting_level_model.keras")
+    model_path = "roasting_level_model.keras"   # WAJIB RELATIF
     return tf.keras.models.load_model(model_path)
 
 model = load_model()
@@ -31,12 +31,12 @@ menu = st.sidebar.radio(
         "Dashboard",
         "Prediksi Gambar",
         "Edukasi Roasting Kopi",
-        "ℹTentang Aplikasi"
+        "Tentang Aplikasi"
     ]
 )
 
 # ===================== MENU HOME =====================
-if menu == "🏠 Home":
+if menu == "Home":
     st.title("☕ Aplikasi Prediksi Tingkat Roasting Biji Kopi")
     st.write("Aplikasi berbasis **Deep Learning (CNN)** untuk memprediksi tingkat kematangan roasting biji kopi.")
 
@@ -60,7 +60,7 @@ if menu == "🏠 Home":
     """)
 
 # ===================== MENU DASHBOARD =====================
-elif menu == "📊 Dashboard":
+elif menu == "Dashboard":
     st.title("📊 Dashboard Model AI")
 
     col1, col2 = st.columns(2)
@@ -78,12 +78,10 @@ elif menu == "📊 Dashboard":
         st.subheader("Perkembangan Akurasi")
         st.line_chart([82, 85, 88, 90, 92])
 
-    st.write("""
-    Model dilatih dengan menggunakan citra biji kopi dengan resolusi 128x128 piksel.
-    """)
+    st.write("Model dilatih menggunakan gambar biji kopi berukuran 128x128 piksel.")
 
 # ===================== MENU PREDIKSI =====================
-elif menu == "📸 Prediksi Gambar":
+elif menu == "Prediksi Gambar":
     st.title("📸 Prediksi Tingkat Roasting")
 
     uploaded_file = st.file_uploader(
@@ -106,14 +104,13 @@ elif menu == "📸 Prediksi Gambar":
 
         st.success(f"✅ Hasil Prediksi: {class_labels[predicted_class].upper()}")
         st.info(f"📊 Tingkat Keyakinan: {confidence:.2f}%")
-
         st.progress(int(confidence))
 
     else:
         st.warning("⚠️ Silakan upload gambar terlebih dahulu.")
 
-# ===================== MENU EDUKASI ROASTING =====================
-elif menu == "📘 Edukasi Roasting Kopi":
+# ===================== MENU EDUKASI =====================
+elif menu == "Edukasi Roasting Kopi":
     st.title("📘 Edukasi Tingkat Roasting Kopi")
 
     level = st.selectbox(
@@ -121,69 +118,31 @@ elif menu == "📘 Edukasi Roasting Kopi":
         ["Green Bean", "Light Roast", "Medium Roast", "Dark Roast"]
     )
 
-    # ================= GREEN =================
     if level == "Green Bean":
-        st.subheader("🟢 GREEN BEAN (Biji Kopi Mentah)")
-        st.write("""
-        **Warna:** Hijau pucat  
-        **Rasa:** Asam mentah, pahit tajam  
-        **Aroma:** Rumput, kacang mentah  
-        **Proses:**  
-        Biji kopi masih mentah dan belum melalui proses roasting sama sekali.
-        Biasanya digunakan sebagai bahan baku sebelum dipanggang.
-        """)
+        st.subheader("🟢 GREEN BEAN")
+        st.write("Biji kopi mentah, belum disangrai.")
 
-    # ================= LIGHT =================
     elif level == "Light Roast":
         st.subheader("🟡 LIGHT ROAST")
-        st.write("""
-        **Warna:** Coklat muda  
-        **Rasa:** Asam lebih dominan, fresh, fruity  
-        **Aroma:** Floral, citrus, buah  
-        **Proses:**  
-        Dipanggang sampai **first crack**, suhu sekitar **180–205°C**.
-        Cocok untuk **manual brew** seperti V60 & pour over.
-        """)
+        st.write("Asam tinggi, fruity, cocok manual brew.")
 
-    # ================= MEDIUM =================
     elif level == "Medium Roast":
         st.subheader("🟤 MEDIUM ROAST")
-        st.write("""
-        **Warna:** Coklat sedang  
-        **Rasa:** Seimbang antara asam, manis, dan pahit  
-        **Aroma:** Karamel, coklat ringan  
-        **Proses:**  
-        Dipanggang setelah first crack, suhu sekitar **210–220°C**.
-        Paling umum digunakan di kafe.
-        """)
+        st.write("Rasa seimbang, paling umum di kafe.")
 
-    # ================= DARK =================
     elif level == "Dark Roast":
         st.subheader("⚫ DARK ROAST")
-        st.write("""
-        **Warna:** Hitam pekat  
-        **Rasa:** Pahit kuat, smoky, rendah asam  
-        **Aroma:** Sangat kuat, gosong, coklat pekat  
-        **Proses:**  
-        Dipanggang melewati **second crack**, suhu di atas **225°C**.
-        Cocok untuk **espresso & kopi tubruk**.
-        """)
+        st.write("Pahit kuat, smoky, cocok espresso.")
 
 # ===================== MENU TENTANG =====================
-elif menu == "ℹ️ Tentang Aplikasi":
+elif menu == "Tentang Aplikasi":
     st.title("ℹ️ Tentang Aplikasi")
     st.write("""
-    Aplikasi ini dikembangkan untuk membantu mengklasifikasikan tingkat kematangan
-    roasting biji kopi menggunakan **Artificial Intelligence berbasis CNN**.
+    Aplikasi ini dibuat untuk klasifikasi tingkat roasting biji kopi
+    menggunakan **CNN berbasis TensorFlow**.
 
-    ### Teknologi:
-    - Python
-    - TensorFlow
-    - CNN
-    - Streamlit
-
-    ### Tujuan:
-    - Edukasi roasting kopi
-    - Digitalisasi penilaian kopi
-    - Mendukung penelitian & UKM kopi
+    ✅ Python  
+    ✅ TensorFlow  
+    ✅ CNN  
+    ✅ Streamlit  
     """)
