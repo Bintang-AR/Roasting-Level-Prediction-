@@ -4,26 +4,40 @@ import numpy as np
 from PIL import Image
 import os
 
-# ===================== KONFIGURASI HALAMAN (WAJIB PALING ATAS) =====================
+# ===================== KONFIGURASI HALAMAN =====================
 st.set_page_config(
     page_title="Roasting Level Coffee AI",
     page_icon="☕",
     layout="wide"
 )
 
-# ===================== LOAD MODEL (AMAN STREAMLIT CLOUD) =====================
+# ===================== LOAD MODEL =====================
 @st.cache_resource
 def load_model():
-    model_path = "new_model.keras"   # WAJIB RELATIF
+    model_path = "new_model.keras"
     return tf.keras.models.load_model(model_path)
 
 model = load_model()
 
-class_labels = ['dark', 'green', 'light', 'medium']
+# ===================== LOAD CLASS LABELS =====================
+try:
+    class_labels = model.class_names
+except:
+    class_labels = ['dark', 'green', 'light', 'medium', 'none']
+
+# ======== MAPPING LABEL none -> "bukan biji kopi" untuk tampilan ========
+display_labels = {
+    "dark": "dark",
+    "green": "green",
+    "light": "light",
+    "medium": "medium",
+    "none": "bukan biji kopi"
+}
+
+NUM_CLASSES = len(class_labels)
 
 # ===================== SIDEBAR MENU =====================
 st.sidebar.title("☕ Coffee AI Menu")
-
 menu = st.sidebar.radio(
     "Navigasi Menu",
     [
@@ -38,7 +52,7 @@ menu = st.sidebar.radio(
 # ===================== MENU HOME =====================
 if menu == "Home":
     st.title("☕ Aplikasi Prediksi Tingkat Roasting Biji Kopi")
-    st.write("Aplikasi berbasis **Deep Learning (CNN)** untuk memprediksi tingkat kematangan roasting biji kopi.")
+    st.write("Aplikasi berbasis **CNN** untuk memprediksi tingkat roasting biji kopi.")
 
     col1, col2, col3 = st.columns(3)
 
@@ -47,7 +61,7 @@ if menu == "Home":
     with col2:
         st.metric(label="🎯 Akurasi Model", value=">90%")
     with col3:
-        st.metric(label="📊 Jumlah Kelas", value="4 Level")
+        st.metric(label="📊 Jumlah Kelas", value=f"{NUM_CLASSES} Level")
 
     st.markdown("---")
     st.subheader("💡 Fitur Aplikasi")
@@ -56,7 +70,6 @@ if menu == "Home":
     ✅ Upload gambar kopi langsung  
     ✅ Dashboard interaktif  
     ✅ Penjelasan tiap level roasting  
-    ✅ Cocok untuk riset & edukasi  
     """)
 
 # ===================== MENU DASHBOARD =====================
@@ -66,19 +79,20 @@ elif menu == "Dashboard":
     col1, col2 = st.columns(2)
 
     with col1:
-        st.subheader("Distribusi Data")
+        st.subheader("Distribusi Data Pelatihan")
         st.bar_chart({
             "Green": 20,
             "Light": 35,
             "Medium": 30,
-            "Dark": 15
+            "Dark": 15,
+            "Bukan Biji Kopi": 10
         })
 
     with col2:
-        st.subheader("Perkembangan Akurasi")
+        st.subheader("Perkembangan Akurasi Pelatihan")
         st.line_chart([82, 85, 88, 90, 92])
 
-    st.write("Model dilatih menggunakan gambar biji kopi berukuran 128x128 piksel.")
+    st.write("Model dilatih menggunakan input gambar ukuran **128x128 piksel**.")
 
 # ===================== MENU PREDIKSI =====================
 elif menu == "Prediksi Gambar":
@@ -93,16 +107,20 @@ elif menu == "Prediksi Gambar":
         image = Image.open(uploaded_file).convert("RGB")
         st.image(image, caption="Gambar Diupload", width=350)
 
+        # preprocess
         img = image.resize((128, 128))
         img_array = np.array(img) / 255.0
         img_array = np.expand_dims(img_array, axis=0)
 
         with st.spinner("🔍 Menganalisis gambar..."):
             prediction = model.predict(img_array)
-            predicted_class = np.argmax(prediction)
-            confidence = np.max(prediction) * 100
+            predicted_index = np.argmax(prediction)
+            confidence = float(np.max(prediction) * 100)
 
-        st.success(f"✅ Hasil Prediksi: {class_labels[predicted_class].upper()}")
+        raw_label = class_labels[predicted_index]
+        predicted_label = display_labels[raw_label].upper()
+
+        st.success(f"✅ Hasil Prediksi: {predicted_label}")
         st.info(f"📊 Tingkat Keyakinan: {confidence:.2f}%")
         st.progress(int(confidence))
 
@@ -115,7 +133,7 @@ elif menu == "Edukasi Roasting Kopi":
 
     level = st.selectbox(
         "Pilih Tingkat Roasting:",
-        ["Green Bean", "Light Roast", "Medium Roast", "Dark Roast"]
+        ["Green Bean", "Light Roast", "Medium Roast", "Dark Roast", "Bukan Biji Kopi"]
     )
 
     if level == "Green Bean":
@@ -134,16 +152,14 @@ elif menu == "Edukasi Roasting Kopi":
         st.subheader("⚫ DARK ROAST")
         st.write("Pahit kuat, smoky, cocok espresso.")
 
+    elif level == "Bukan Biji Kopi":
+        st.subheader("⚪ BUKAN BIJI KOPI")
+        st.write("Gambar tidak berisi biji kopi yang valid atau berada di luar kategori roasting.")
+
 # ===================== MENU TENTANG =====================
 elif menu == "Tentang Aplikasi":
     st.title("ℹ️ Tentang Aplikasi")
     st.write("""
     Aplikasi ini dibuat untuk klasifikasi tingkat roasting biji kopi
-    menggunakan **CNN berbasis TensorFlow**.
-
-    ✅ Python  
-    ✅ TensorFlow  
-    ✅ CNN  
-    ✅ Streamlit  
+    menggunakan **CNN TensorFlow**.
     """)
-
