@@ -14,7 +14,7 @@ st.set_page_config(
 # ===================== LOAD MODEL (AMAN STREAMLIT CLOUD) =====================
 @st.cache_resource
 def load_model():
-    model_path = "roasting_level_model.keras"   # WAJIB RELATIF
+    model_path = "new_model.keras"   # WAJIB RELATIF
     return tf.keras.models.load_model(model_path)
 
 model = load_model()
@@ -146,3 +146,4 @@ elif menu == "Tentang Aplikasi":
     ✅ CNN  
     ✅ Streamlit  
     """)
+
